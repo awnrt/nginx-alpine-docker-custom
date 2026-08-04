@@ -1,0 +1,159 @@
+--- nginx-custom-build/build.sh	2026-08-04 15:59:27.618095481 +0300
++++ build.sh	2026-08-04 15:44:29.372666379 +0300
+@@ -86,7 +86,7 @@
+     cd out
+     cmake -DCMAKE_BUILD_TYPE=Release \
+           -DBUILD_SHARED_LIBS=OFF \
+-          -DCMAKE_C_FLAGS="-O2 -march=x86-64-v3 -fPIC" \
++          -DCMAKE_C_FLAGS="-O2 -march=x86-64-v4 -fPIC" \
+           ..
+     cmake --build . --config Release -j"$(nproc)" --target brotlienc brotlicommon brotlidec
+ )
+@@ -112,13 +112,13 @@
+     --with-http_v2_module \
+     --with-http_v3_module \
+     --with-http_gunzip_module \
+-    --with-cc-opt='-O2 -march=x86-64-v3 -DTCP_FASTOPEN=23 -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fPIC' \
++    --with-cc-opt='-O2 -march=x86-64-v4 -DTCP_FASTOPEN=23 -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fPIC' \
+     --with-ld-opt='-Wl,-z,relro -Wl,-z,now' \
+     \
+     --with-zlib=../zlib-${zlib_version} \
+     --with-pcre=../pcre2-${pcre2_version} \
+     --with-openssl=../openssl-${openssl_version} \
+-    --with-openssl-opt="zlib --with-zlib-include=$(pwd)/../zlib-${zlib_version} --with-zlib-lib=$(pwd)/../zlib-${zlib_version} no-shared enable-ec_nistp_64_gcc_128 -DOPENSSL_TLS_SECURITY_LEVEL=2 -O2 -march=x86-64-v3" \
++    --with-openssl-opt="zlib --with-zlib-include=$(pwd)/../zlib-${zlib_version} --with-zlib-lib=$(pwd)/../zlib-${zlib_version} no-shared enable-ec_nistp_64_gcc_128 -DOPENSSL_TLS_SECURITY_LEVEL=2 -O2 -march=x86-64-v4" \
+     \
+     --add-module=../ngx_http_geoip2_module-${geoip2_version} \
+     --add-module=../ngx_brotli \
+@@ -130,7 +130,6 @@
+     --without-http_ssi_module \
+     --without-http_userid_module \
+     --without-http_mirror_module \
+-    --without-http_autoindex_module \
+     --without-http_split_clients_module \
+     --without-http_referer_module \
+     --without-http_fastcgi_module \
+@@ -186,94 +185,40 @@
+ 
+ cd ..
+ 
+-echo ">>> [5/6] Creating Debian Package info..."
+-mkdir -p pkg/DEBIAN
++echo ">>> [5/6] Preparing runtime filesystem..."
+ 
+-cat > pkg/DEBIAN/control <<EOF
+-Package: nginx-custom
+-Version: ${nginx_version}-2
+-Section: httpd
+-Priority: optional
+-Architecture: ${ARCH}
+-Depends: libc6 (>= 2.34), lsb-base, libmaxminddb0
+-Provides: httpd, nginx
+-Conflicts: nginx, nginx-common, nginx-core, nginx-full, nginx-light, nginx-extras
+-Replaces: nginx, nginx-common, nginx-core, nginx-full, nginx-light, nginx-extras
+-Breaks: nginx-core (<< ${nginx_version}), nginx-extras (<< ${nginx_version}), nginx-light (<< ${nginx_version})
+-Maintainer: ${maintainer}
+-Description: Small, powerful, scalable web/proxy server (custom static build)
+- Nginx ("engine X") is a high-performance web and reverse proxy server
+- created by Igor Sysoev. It can be used both as a standalone web server
+- and as a proxy to reduce the load on back-end HTTP or mail servers.
+- .
+- This is a custom static build with OpenSSL ${openssl_version}, PCRE2, Zlib, GeoIP2, and Brotli.
+- All dependencies except libmaxminddb are statically linked.
+-Homepage: https://nginx.org
+-EOF
+-
+-cat > pkg/DEBIAN/conffiles <<EOF
+-/etc/nginx/nginx.conf
+-/etc/nginx/mime.types
+-EOF
+-
+-cat > pkg/DEBIAN/postinst <<EOF
+-#!/bin/sh
+-set -e
++# Runtime directories
++mkdir -p pkg/var/log/nginx
++mkdir -p pkg/var/lib/nginx/body
++mkdir -p pkg/var/lib/nginx/proxy
++mkdir -p pkg/run
++
++# Remove unnecessary default files
++rm -rf pkg/etc/nginx/html
++rm -f pkg/etc/nginx/*.default
++rm -f pkg/etc/nginx/koi-*
++rm -f pkg/etc/nginx/win-*
++rm -f pkg/etc/nginx/fastcgi.conf
++rm -f pkg/etc/nginx/fastcgi_params
++rm -f pkg/etc/nginx/scgi_params
++rm -f pkg/etc/nginx/uwsgi_params
++
++# Keep these directories available
++mkdir -p pkg/etc/nginx/conf.d
++mkdir -p pkg/etc/nginx/snippets
+ 
+-if ! getent group ${group} >/dev/null; then
+-    addgroup --system ${group}
+-fi
+-if ! getent passwd ${user} >/dev/null; then
+-    adduser --system --no-create-home --disabled-login --ingroup ${group} ${user}
+-fi
+-
+-mkdir -p /var/log/nginx
+-mkdir -p /var/lib/nginx/body
+-mkdir -p /var/lib/nginx/proxy
+-
+-chown -R ${user}:${group} /var/log/nginx /var/lib/nginx
+-
+-if [ -d /run/systemd/system ]; then
+-    systemctl daemon-reload >/dev/null || true
+-    if systemctl is-active --quiet nginx 2>/dev/null; then
+-        systemctl try-restart nginx >/dev/null 2>&1 || true
+-    fi
+-fi
+-EOF
+-chmod 755 pkg/DEBIAN/postinst
++echo ">>> [6/6] Build output ready..."
+ 
+-mkdir -p pkg/lib/systemd/system
+-cat > pkg/lib/systemd/system/nginx.service <<EOF
+-[Unit]
+-Description=A high performance web server and a reverse proxy server
+-Documentation=man:nginx(8)
+-After=network-online.target remote-fs.target nss-lookup.target
+-Wants=network-online.target
+-ConditionFileIsExecutable=/usr/sbin/nginx
+-
+-[Service]
+-Type=forking
+-PIDFile=/run/nginx.pid
+-ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
+-ExecStart=/usr/sbin/nginx -g 'daemon on; master_process on;'
+-ExecReload=/usr/sbin/nginx -g 'daemon on; master_process on;' -s reload
+-ExecStop=-/sbin/start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile /run/nginx.pid
+-TimeoutStopSec=5
+-KillMode=mixed
+-
+-[Install]
+-WantedBy=multi-user.target
+-EOF
+-
+-echo ">>> [6/6] Building .deb..."
+-dpkg-deb --root-owner-group --build pkg ../output/nginx-custom_${nginx_version}_${ARCH}.deb
+-
+-if [ ! -f ../output/nginx-custom_${nginx_version}_${ARCH}.deb ]; then
+-    echo "Error: DEB package not created"
++if [ ! -f pkg/usr/sbin/nginx ]; then
++    echo "Error: nginx binary not found"
+     exit 1
+ fi
+ 
+-cd ..
+-rm -rf src
++echo "Runtime files:"
++ls -lh pkg/usr/sbin/nginx
++
++rm -rf ../output
++mkdir -p ../output
++cp -a pkg/. ../output/
+ 
+ echo "Success!"

@@ -1,0 +1,4 @@
+environment
+*.tar
+*.tar.*
+build.sh
