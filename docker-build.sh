@@ -3,7 +3,6 @@ set -eu
 
 IMAGE="${IMAGE:-nginx-custom}"
 VERSION="${VERSION:-dev}"
-VERSION="${VERSION#v}"
 
 git submodule sync --recursive
 git submodule update --init --recursive
