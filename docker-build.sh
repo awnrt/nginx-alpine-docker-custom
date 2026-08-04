@@ -1,6 +1,10 @@
 #!/bin/sh
 set -eu
 
+IMAGE="${IMAGE:-nginx-custom}"
+VERSION="${VERSION:-dev}"
+VERSION="${VERSION#v}"
+
 git submodule sync --recursive
 git submodule update --init --recursive
 cd nginx-custom-build
@@ -13,12 +17,20 @@ cd ..
 
 # copy environment.example to environment and change vars
 # if you want to auto push it to your server
-. ./environment
+if [ -f ./environment ]; then
+    . ./environment
+fi
 
-docker build --no-cache -t nginx-custom .
+docker build \
+    -t "${IMAGE}:${VERSION}" \
+    -t "${IMAGE}:latest" \
+    --no-cache \
+    .
 
-if [ -n "${REMOTEUSER:-}" ] && [ -n "${REMOTEDOMAIN:-}" ]; then
-    docker save nginx-custom:latest | zstd -T0 -19 | ssh "${REMOTEUSER}@${REMOTEDOMAIN}" "zstd -d | docker load"
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "Running in GitHub Actions, skipping image export"
+elif [ -n "${REMOTEUSER:-}" ] && [ -n "${REMOTEDOMAIN:-}" ]; then
+    docker save "${IMAGE}:latest" | zstd -T0 -19 | ssh "${REMOTEUSER}@${REMOTEDOMAIN}" "zstd -d | docker load"
 else
-    docker save nginx-custom:latest | zstd -T0 -19 -o nginx-custom.tar.zst
+    docker save "${IMAGE}:latest" | zstd -T0 -19 -o nginx-custom.tar.zst
 fi

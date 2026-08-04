@@ -1,0 +1,41 @@
+name: Build nginx-custom
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/nginx-custom
+          VERSION: ${{ github.ref_name }}
+        run: ./docker-build.sh
+
+      - name: Push image
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/nginx-custom:${{ github.ref_name }}
+          docker tag \
+            ghcr.io/${{ github.repository_owner }}/nginx-custom:${{ github.ref_name }} \
+            ghcr.io/${{ github.repository_owner }}/nginx-custom:latest
+          docker push ghcr.io/${{ github.repository_owner }}/nginx-custom:latest
