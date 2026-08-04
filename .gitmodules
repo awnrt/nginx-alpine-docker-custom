@@ -1,4 +1,3 @@
 [submodule "nginx-custom-build"]
 	path = nginx-custom-build
 	url = https://git.bloat.cat/vlnst/nginx-custom-build
-  branch = main

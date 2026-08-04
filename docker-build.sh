@@ -2,7 +2,7 @@
 set -eu
 
 git submodule sync --recursive
-git submodule update --init --recursive --remote
+git submodule update --init --recursive
 cd nginx-custom-build
 # Make sure we start from a clean upstream state
 git reset --hard
