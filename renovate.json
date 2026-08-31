@@ -1,0 +1,80 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "nginx_version=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "nginx/nginx",
+      "extractVersionTemplate": "^release-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "openssl_version=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "openssl/openssl",
+      "extractVersionTemplate": "^openssl-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "zlib_version=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "madler/zlib",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "pcre2_version=\"(?<currentValue>\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "PCRE2Project/pcre2",
+      "extractVersionTemplate": "^pcre2-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "geoip2_version=\"(?<currentValue>\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "leev/ngx_http_geoip2_module"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "brotli_commit=\"(?<currentDigest>[a-f0-9]+)\""
+      ],
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "ngx_brotli",
+      "packageNameTemplate": "https://github.com/google/ngx_brotli"
+    }
+  ]
+}
