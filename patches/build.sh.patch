@@ -1,6 +1,8 @@
---- nginx-custom-build/build.sh	2026-08-04 15:59:27.618095481 +0300
-+++ build.sh	2026-08-04 15:44:29.372666379 +0300
-@@ -86,7 +86,7 @@
+diff --git a/build.sh b/build.sh
+index 0ee9d57..d6d8105 100755
+--- a/build.sh
++++ b/build.sh
+@@ -86,7 +86,7 @@ echo "  -> Pre-building Brotli static libs..."
      cd out
      cmake -DCMAKE_BUILD_TYPE=Release \
            -DBUILD_SHARED_LIBS=OFF \
@@ -9,7 +11,7 @@
            ..
      cmake --build . --config Release -j"$(nproc)" --target brotlienc brotlicommon brotlidec
  )
-@@ -112,13 +112,13 @@
+@@ -112,13 +112,13 @@ run_step "nginx configure" ./configure \
      --with-http_v2_module \
      --with-http_v3_module \
      --with-http_gunzip_module \
@@ -25,7 +27,7 @@
      \
      --add-module=../ngx_http_geoip2_module-${geoip2_version} \
      --add-module=../ngx_brotli \
-@@ -130,7 +130,6 @@
+@@ -130,13 +130,11 @@ run_step "nginx configure" ./configure \
      --without-http_ssi_module \
      --without-http_userid_module \
      --without-http_mirror_module \
@@ -33,14 +35,19 @@
      --without-http_split_clients_module \
      --without-http_referer_module \
      --without-http_fastcgi_module \
-@@ -186,94 +185,40 @@
- 
+     --without-http_uwsgi_module \
+     --without-http_scgi_module \
+-    --without-http_grpc_module \
+     --without-http_memcached_module \
+     --without-http_limit_conn_module \
+     --without-http_empty_gif_module \
+@@ -186,94 +184,40 @@ mkdir -p ../pkg/etc/nginx/snippets
+
  cd ..
- 
+
 -echo ">>> [5/6] Creating Debian Package info..."
 -mkdir -p pkg/DEBIAN
-+echo ">>> [5/6] Preparing runtime filesystem..."
- 
+-
 -cat > pkg/DEBIAN/control <<EOF
 -Package: nginx-custom
 -Version: ${nginx_version}-2
@@ -71,12 +78,25 @@
 -cat > pkg/DEBIAN/postinst <<EOF
 -#!/bin/sh
 -set -e
+-
+-if ! getent group ${group} >/dev/null; then
+-    addgroup --system ${group}
+-fi
+-if ! getent passwd ${user} >/dev/null; then
+-    adduser --system --no-create-home --disabled-login --ingroup ${group} ${user}
+-fi
++echo ">>> [5/6] Preparing runtime filesystem..."
+
+-mkdir -p /var/log/nginx
+-mkdir -p /var/lib/nginx/body
+-mkdir -p /var/lib/nginx/proxy
 +# Runtime directories
 +mkdir -p pkg/var/log/nginx
 +mkdir -p pkg/var/lib/nginx/body
 +mkdir -p pkg/var/lib/nginx/proxy
 +mkdir -p pkg/run
-+
+
+-chown -R ${user}:${group} /var/log/nginx /var/lib/nginx
 +# Remove unnecessary default files
 +rm -rf pkg/etc/nginx/html
 +rm -f pkg/etc/nginx/*.default
@@ -86,24 +106,7 @@
 +rm -f pkg/etc/nginx/fastcgi_params
 +rm -f pkg/etc/nginx/scgi_params
 +rm -f pkg/etc/nginx/uwsgi_params
-+
-+# Keep these directories available
-+mkdir -p pkg/etc/nginx/conf.d
-+mkdir -p pkg/etc/nginx/snippets
- 
--if ! getent group ${group} >/dev/null; then
--    addgroup --system ${group}
--fi
--if ! getent passwd ${user} >/dev/null; then
--    adduser --system --no-create-home --disabled-login --ingroup ${group} ${user}
--fi
--
--mkdir -p /var/log/nginx
--mkdir -p /var/lib/nginx/body
--mkdir -p /var/lib/nginx/proxy
--
--chown -R ${user}:${group} /var/log/nginx /var/lib/nginx
--
+
 -if [ -d /run/systemd/system ]; then
 -    systemctl daemon-reload >/dev/null || true
 -    if systemctl is-active --quiet nginx 2>/dev/null; then
@@ -112,8 +115,7 @@
 -fi
 -EOF
 -chmod 755 pkg/DEBIAN/postinst
-+echo ">>> [6/6] Build output ready..."
- 
+-
 -mkdir -p pkg/lib/systemd/system
 -cat > pkg/lib/systemd/system/nginx.service <<EOF
 -[Unit]
@@ -142,11 +144,17 @@
 -
 -if [ ! -f ../output/nginx-custom_${nginx_version}_${ARCH}.deb ]; then
 -    echo "Error: DEB package not created"
++# Keep these directories available
++mkdir -p pkg/etc/nginx/conf.d
++mkdir -p pkg/etc/nginx/snippets
++
++echo ">>> [6/6] Build output ready..."
++
 +if [ ! -f pkg/usr/sbin/nginx ]; then
 +    echo "Error: nginx binary not found"
      exit 1
  fi
- 
+
 -cd ..
 -rm -rf src
 +echo "Runtime files:"
@@ -155,5 +163,5 @@
 +rm -rf ../output
 +mkdir -p ../output
 +cp -a pkg/. ../output/
- 
+
  echo "Success!"
