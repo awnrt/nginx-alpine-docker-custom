@@ -1,4 +1,4 @@
-FROM alpine:3.22 AS builder
+FROM alpine:3.24 AS builder
 
 RUN apk add --no-cache \
     bash \
@@ -22,7 +22,7 @@ COPY build.sh .
 RUN chmod +x build.sh \
     && ./build.sh
 
-FROM alpine:3.22
+FROM alpine:3.24
 
 RUN apk add --no-cache \
     ca-certificates \
