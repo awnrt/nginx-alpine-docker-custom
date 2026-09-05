@@ -4,7 +4,7 @@ set -euo pipefail
 nginx_version="1.31.5"
 openssl_version="4.0.2"
 zlib_version="1.3.2"
-pcre2_version="10.47"
+pcre2_version="10.48"
 geoip2_version="3.4"
 brotli_commit="a71f9312c2deb28875acc7bacfdd5695a111aa53"
 
