@@ -7,6 +7,7 @@ zlib_version="1.3.2"
 pcre2_version="10.49"
 geoip2_version="3.4"
 brotli_commit="a71f9312c2deb28875acc7bacfdd5695a111aa53"
+headers_more_commit="04b13238d1d34f57d3232b7da65b89b93720854f"
 
 user=nginx
 group=nginx
@@ -79,6 +80,10 @@ tar -xf ngx_http_geoip2_module-${geoip2_version}.tar.gz
 git clone --recursive https://github.com/google/ngx_brotli.git
 (cd ngx_brotli && git checkout -q ${brotli_commit} && git submodule update --init --recursive)
 
+# headers-more-nginx-module
+git clone https://github.com/openresty/headers-more-nginx-module.git
+(cd headers-more-nginx-module && git checkout -q "${headers_more_commit}")
+
 echo "  -> Pre-building Brotli static libs..."
 (
     cd ngx_brotli/deps/brotli
@@ -122,6 +127,7 @@ run_step "nginx configure" ./configure \
     \
     --add-module=../ngx_http_geoip2_module-${geoip2_version} \
     --add-module=../ngx_brotli \
+    --add-module=../headers-more-nginx-module \
     --with-stream \
     --with-stream_ssl_module \
     \

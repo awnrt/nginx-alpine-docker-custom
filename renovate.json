@@ -75,6 +75,19 @@
       "datasourceTemplate": "git-refs",
       "depNameTemplate": "ngx_brotli",
       "packageNameTemplate": "https://github.com/google/ngx_brotli"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "headers_more_commit=\"(?<currentDigest>[a-f0-9]+)\""
+      ],
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "headers-more-nginx-module",
+      "packageNameTemplate": "https://github.com/openresty/headers-more-nginx-module"
     }
   ]
 }
