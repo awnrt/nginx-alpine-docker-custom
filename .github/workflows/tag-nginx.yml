@@ -1,0 +1,91 @@
+name: Tag Nginx release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - build.sh
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Create Nginx release tag
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          # Read the Nginx version from build.sh
+          current_version=$(sed -nE \
+            's/^nginx_version="([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' \
+            build.sh | head -n1)
+
+          if [[ -z "$current_version" ]]; then
+            echo "Could not determine Nginx version"
+            exit 1
+          fi
+
+          # Read the version before this push
+          previous_version=""
+
+          if [[ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            previous_version=$(git show \
+              "${BEFORE_SHA}:build.sh" 2>/dev/null |
+              sed -nE \
+                's/^nginx_version="([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' |
+              head -n1 || true)
+          fi
+
+          # Only release when the Nginx version changes
+          if [[ "$current_version" == "$previous_version" ]]; then
+            echo "Nginx version unchanged: $current_version"
+            exit 0
+          fi
+
+          git fetch --tags origin
+
+          # Avoid creating another tag if this commit is rerun
+          if git tag --points-at HEAD |
+            grep -Eq "^v${current_version}-r[0-9]+$"; then
+            echo "This commit already has an Nginx release tag"
+            exit 0
+          fi
+
+          # Find the highest existing revision for this Nginx version
+          latest_revision=$(
+            git tag -l "v${current_version}-r*" |
+            grep -E "^v${current_version}-r[0-9]+$" |
+            sed -E 's/.*-r([0-9]+)$/\1/' |
+            sort -n |
+            tail -n1 || true
+          )
+
+          if [[ -z "$latest_revision" ]]; then
+            revision=1
+          else
+            revision=$((latest_revision + 1))
+          fi
+
+          tag="v${current_version}-r${revision}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$tag" -m "Nginx ${current_version} release ${tag}"
+          git push origin "$tag"
+
+          echo "Created and pushed $tag"
