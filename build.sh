@@ -2,7 +2,7 @@
 set -euo pipefail
 
 nginx_version="1.31.8"
-openssl_version="4.0.3"
+openssl_version="4.1.0"
 zlib_version="1.3.2"
 pcre2_version="10.49"
 geoip2_version="3.4"
