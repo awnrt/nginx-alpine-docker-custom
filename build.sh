@@ -91,7 +91,7 @@ echo "  -> Pre-building Brotli static libs..."
     cd out
     cmake -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF \
-          -DCMAKE_C_FLAGS="-O2 -march=x86-64-v4 -fPIC" \
+          -DCMAKE_C_FLAGS="-O3 -march=x86-64-v3 -fPIC" \
           ..
     cmake --build . --config Release -j"$(nproc)" --target brotlienc brotlicommon brotlidec
 )
@@ -117,13 +117,13 @@ run_step "nginx configure" ./configure \
     --with-http_v2_module \
     --with-http_v3_module \
     --with-http_gunzip_module \
-    --with-cc-opt='-O2 -march=x86-64-v4 -DTCP_FASTOPEN=23 -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fPIC' \
+    --with-cc-opt='-O3 -march=x86-64-v3 -DTCP_FASTOPEN=23 -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fPIC' \
     --with-ld-opt='-Wl,-z,relro -Wl,-z,now' \
     \
     --with-zlib=../zlib-${zlib_version} \
     --with-pcre=../pcre2-${pcre2_version} \
     --with-openssl=../openssl-${openssl_version} \
-    --with-openssl-opt="zlib --with-zlib-include=$(pwd)/../zlib-${zlib_version} --with-zlib-lib=$(pwd)/../zlib-${zlib_version} no-shared enable-ec_nistp_64_gcc_128 -DOPENSSL_TLS_SECURITY_LEVEL=2 -O2 -march=x86-64-v4" \
+    --with-openssl-opt="zlib --with-zlib-include=$(pwd)/../zlib-${zlib_version} --with-zlib-lib=$(pwd)/../zlib-${zlib_version} no-shared enable-ec_nistp_64_gcc_128 -DOPENSSL_TLS_SECURITY_LEVEL=2 -O3 -march=x86-64-v3" \
     \
     --add-module=../ngx_http_geoip2_module-${geoip2_version} \
     --add-module=../ngx_brotli \
