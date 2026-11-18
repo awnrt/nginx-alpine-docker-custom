@@ -118,6 +118,7 @@ run_step "nginx configure" ./configure \
     --with-http_v3_module \
     --with-http_gunzip_module \
     --with-cc-opt='-O3 -march=x86-64-v3 -DTCP_FASTOPEN=23 -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fPIC' \
+    --with-http_realip_module \
     --with-ld-opt='-Wl,-z,relro -Wl,-z,now' \
     \
     --with-zlib=../zlib-${zlib_version} \
