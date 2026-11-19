@@ -7,7 +7,7 @@ zlib_version="1.4"
 pcre2_version="10.49"
 geoip2_version="3.4"
 brotli_commit="53e0fb55f250f48fe80c0ddbf6c0f7103cdbaae1"
-headers_more_commit="21066f7eed72e4de4f6ec47b93e8d5f36c38b84a"
+headers_more_commit="e30b10e0bb1cfb042d76ba3a865410ff95d65660"
 
 user=nginx
 group=nginx
