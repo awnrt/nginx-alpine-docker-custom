@@ -12,7 +12,7 @@ RUN apk add --no-cache \
     openssl-dev \
     pcre2-dev \
     zlib-dev \
-    libzstd-dev \
+    zstd-dev \
     libmaxminddb-dev \
     tar
 
