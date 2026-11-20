@@ -1,4 +1,4 @@
-FROM alpine:3.24 AS builder
+FROM alpine:latest AS builder
 
 RUN apk add --no-cache \
     bash \
@@ -12,6 +12,7 @@ RUN apk add --no-cache \
     openssl-dev \
     pcre2-dev \
     zlib-dev \
+    libzstd-dev \
     libmaxminddb-dev \
     tar
 
@@ -22,7 +23,7 @@ COPY build.sh .
 RUN chmod +x build.sh \
     && ./build.sh
 
-FROM alpine:3.24
+FROM alpine:latest
 
 RUN apk add --no-cache \
     ca-certificates \

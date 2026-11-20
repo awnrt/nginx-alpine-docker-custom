@@ -8,6 +8,7 @@ pcre2_version="10.49"
 geoip2_version="3.4"
 brotli_commit="53e0fb55f250f48fe80c0ddbf6c0f7103cdbaae1"
 headers_more_commit="e30b10e0bb1cfb042d76ba3a865410ff95d65660"
+zstd_commit="4a0019c89b18ed7a6d27967aab9c3a26f566788b"
 
 user=nginx
 group=nginx
@@ -84,6 +85,12 @@ git clone --recursive https://github.com/google/ngx_brotli.git
 git clone https://github.com/openresty/headers-more-nginx-module.git
 (cd headers-more-nginx-module && git checkout -q "${headers_more_commit}")
 
+git clone https://github.com/GetPageSpeed/zstd-nginx-module.git
+(
+    cd zstd-nginx-module
+    git checkout -q "$zstd_commit"
+)
+
 echo "  -> Pre-building Brotli static libs..."
 (
     cd ngx_brotli/deps/brotli
@@ -129,6 +136,7 @@ run_step "nginx configure" ./configure \
     --add-module=../ngx_http_geoip2_module-${geoip2_version} \
     --add-module=../ngx_brotli \
     --add-module=../headers-more-nginx-module \
+    --add-module=../zstd-nginx-module \
     --with-stream \
     --with-stream_ssl_module \
     \

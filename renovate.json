@@ -89,6 +89,19 @@
       "datasourceTemplate": "git-refs",
       "depNameTemplate": "headers-more-nginx-module",
       "packageNameTemplate": "https://github.com/openresty/headers-more-nginx-module"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^build\\.sh$"
+      ],
+      "matchStrings": [
+        "zstd_commit=\"(?<currentDigest>[a-f0-9]+)\""
+      ],
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "zstd-nginx-module",
+      "packageNameTemplate": "https://github.com/GetPageSpeed/zstd-nginx-module"
     }
   ]
 }
