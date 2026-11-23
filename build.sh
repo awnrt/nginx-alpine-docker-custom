@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-nginx_version="1.31.9"
+nginx_version="1.31.10"
 openssl_version="4.1.0"
 zlib_version="1.4"
 pcre2_version="10.49"
