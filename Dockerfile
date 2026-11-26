@@ -1,4 +1,4 @@
-FROM alpine:latest AS builder
+FROM alpine:edge AS builder
 
 RUN apk add --no-cache \
     bash \
@@ -23,7 +23,7 @@ COPY build.sh .
 RUN chmod +x build.sh \
     && ./build.sh
 
-FROM alpine:latest
+FROM alpine:edge
 
 RUN apk add --no-cache \
     ca-certificates \
