@@ -34,5 +34,5 @@ The original `nginx-custom-build` project produces a x86_64-v3 `.deb` package.
 This patch changes the build process to:
 
 * Build a minimal Alpine-based nginx image
-* Target x86_64-v4 CPU features
+* ~~Target x86_64-v4 CPU features~~
 * Keep the auto-index module enabled
